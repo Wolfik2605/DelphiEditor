@@ -154,18 +154,13 @@ begin
   end;
 
   // Привязываем контекстное меню к статусбару
-  StatusBar1.PopupMenu := StatusBarPopupMenu; // Assuming StatusBarPopupMenu is the name of the TPopupMenu component
+  StatusBar1.PopupMenu := StatusBarPopupMenu;
 
   SynEdit1.Font.Name := 'Consolas';
   SynEdit1.Font.Size := 10;
   SynEdit1.Highlighter := SynPasSyn1;
   SynEdit1.Gutter.ShowLineNumbers := True;
   SynEdit1.Gutter.Font := SynEdit1.Font;
-  
-  // Настраиваем цвета выделения (используются при выделении мышью)
-  SynEdit1.SelectedColor.Background := RGB(255, 200, 200);
-  SynEdit1.SelectedColor.Foreground := clBlack;
-  SynEdit1.SelectedColor.Alpha := 1.0; // Устанавливаем непрозрачность
   
   // Настраиваем начальные цвета подсветки
   ConfigureSyntaxColors;
@@ -185,7 +180,21 @@ begin
       Reg.RootKey := HKEY_CURRENT_USER;
       if Reg.OpenKey('\Software\DelphiEditor', False) then // Открываем ключ только для чтения
       begin
-        if Reg.ValueExists('LastFile') then
+        // Сначала проверяем, был ли пустой файл
+        if Reg.ValueExists('WasEmpty') and Reg.ReadBool('WasEmpty') then
+        begin
+          // Если был пустой файл, очищаем редактор
+          FileName := '';
+          SynEdit1.Clear;
+          Caption := 'Delphi Editor';
+          StatusBar1.Panels[2].Text := '';
+          
+          // Обновляем информацию о количестве строк и символов
+          StatusBar1.Panels[0].Text := 'Символов: 0';
+          StatusBar1.Panels[1].Text := 'Строк: 0';
+        end
+        // Если не было пустого файла, проверяем наличие последнего файла
+        else if Reg.ValueExists('LastFile') then
         begin
           FFileName := Reg.ReadString('LastFile');
           if FileExists(FFileName) then // Проверяем, существует ли файл
@@ -211,7 +220,7 @@ begin
         end
         else
         begin
-          // Если записи о последнем файле нет, очищаем редактор
+          // Если нет ни пустого файла, ни последнего файла, очищаем редактор
           FileName := '';
           SynEdit1.Clear;
           Caption := 'Delphi Editor';
@@ -250,6 +259,7 @@ begin
         if Reg.OpenKey('\Software\DelphiEditor', True) then
         begin
           Reg.WriteString('LastFile', FFileName);
+          Reg.WriteBool('WasEmpty', False);
           Reg.CloseKey();
         end;
       finally
@@ -268,6 +278,8 @@ begin
 end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  Reg: TRegistry;
 begin
   if SynEdit1.Modified then
   begin
@@ -277,6 +289,25 @@ begin
         SaveClick(Sender);
       mrCancel:
         CanClose := False;
+    end;
+  end;
+
+  // Сохраняем состояние пустого файла
+  if CanClose then
+  begin
+    Reg := TRegistry.Create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\DelphiEditor', True) then
+      begin
+        if FileName = '' then
+          Reg.WriteBool('WasEmpty', True)
+        else
+          Reg.WriteBool('WasEmpty', False);
+        Reg.CloseKey;
+      end;
+    finally
+      Reg.Free;
     end;
   end;
 end;
