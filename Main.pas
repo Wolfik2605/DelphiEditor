@@ -538,96 +538,104 @@ procedure TForm1.CheckSemicolonUsage;
 var
   I: Integer;
   Line, NextLine: string;
+  SkipLine: Boolean;
 begin
   for I := 0 to SynEdit1.Lines.Count - 2 do // Проверяем до предпоследней строки, чтобы иметь доступ к NextLine
   begin
     Line := Trim(SynEdit1.Lines[I]);
     NextLine := LowerCase(Trim(SynEdit1.Lines[I + 1]));
+    SkipLine := False;
 
     // Пропускаем комментарии и директивы компилятора
-    if (Line <> '') and
-       (((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
-        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
-        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}'))) then // Комментарии {}
-      Continue;
-
-    // Проверяем наличие точки с запятой, если строка не пустая и не заканчивается на исключающие ключевые слова или перед else
-    if (Line <> '') and (Line[Length(Line)] <> ';') and
-       (not lowercase(Line).EndsWith('begin')) and
-       (not lowercase(Line).EndsWith('end.')) and
-       (not lowercase(Line).EndsWith('repeat')) and
-       (not lowercase(Line).EndsWith('then')) and
-       (not lowercase(Line).EndsWith('else')) and
-       (not lowercase(Line).EndsWith('do')) and
-       (not lowercase(Line).EndsWith('of')) and
-       (not lowercase(Line).EndsWith(':')) and
-       (not lowercase(Line).EndsWith(',')) and
-       (not lowercase(Line).EndsWith('try')) and
-       (not lowercase(Line).EndsWith('except')) and
-       (not lowercase(Line).EndsWith('finally')) and
-       (not lowercase(Line).EndsWith('until')) and
-       (not lowercase(Line).EndsWith('interface')) and
-       (not lowercase(Line).EndsWith('implementation')) and
-       (not lowercase(Line).EndsWith('initialization')) and
-       (not lowercase(Line).EndsWith('finalization')) and
-       (not lowercase(Line).EndsWith('const')) and
-       (not lowercase(Line).EndsWith('type')) and
-       (not lowercase(Line).EndsWith('var')) and
-       (not lowercase(Line).EndsWith('class')) and
-       (not lowercase(Line).EndsWith('public')) and
-       (not lowercase(Line).EndsWith('private')) and
-       (not lowercase(Line).EndsWith('protected')) and
-       (not lowercase(Line).EndsWith('published')) and
-       (not lowercase(Line).EndsWith('record')) and
-       (not lowercase(Line).EndsWith('array')) and
-       (not lowercase(Line).EndsWith('set')) and
-       (not lowercase(Line).EndsWith('file')) and
-       (not lowercase(Line).EndsWith('threadvar')) and
-       (not lowercase(Line).EndsWith('exports')) and
-       (not lowercase(Line).EndsWith('constructor')) and
-       (not lowercase(Line).EndsWith('destructor')) and
-       (not lowercase(Line).EndsWith('property')) and
-       (not lowercase(Line).EndsWith('procedure')) and
-       (not lowercase(Line).EndsWith('function')) and
-       (not lowercase(Line).EndsWith('try')) and
-       (not lowercase(Line).EndsWith('except')) and
-       (not lowercase(Line).EndsWith('finally')) and
-       (not lowercase(Line).EndsWith('repeat')) and
-       (not lowercase(Line).EndsWith('until')) and
-       (not lowercase(Line).EndsWith('uses')) and
-       (not lowercase(Line).EndsWith('and')) and
-       (not lowercase(Line).EndsWith('or')) and
-       (not lowercase(Line).EndsWith('div')) and
-       (not lowercase(Line).EndsWith('mod')) and
-       (not lowercase(Line).EndsWith('in')) and
-       (not lowercase(Line).EndsWith('is')) and
-       (not lowercase(Line).EndsWith('as')) and
-       (not lowercase(Line).EndsWith('shl')) and
-       (not lowercase(Line).EndsWith('shr')) and
-       (not lowercase(Line).EndsWith('+')) and
-       (not lowercase(Line).EndsWith('-')) and
-       (not lowercase(Line).EndsWith('*')) and
-       (not lowercase(Line).EndsWith('/')) and
-       (not lowercase(Line).EndsWith('=')) and
-       (not lowercase(Line).EndsWith('<>')) and
-       (not lowercase(Line).EndsWith('<')) and
-       (not lowercase(Line).EndsWith('>')) and
-       (not lowercase(Line).EndsWith('<=')) and
-       (not lowercase(Line).EndsWith('>=')) and
-       (not lowercase(Line).EndsWith('^')) and
-       (not lowercase(Line).EndsWith('.')) and
-       (not lowercase(NextLine).StartsWith('else')) and
-       (not ((Pos(' class', LowerCase(Line)) > 0) and (Pos('=', NextLine) = 0)))
-    then
+    if (Line <> '') then
     begin
-      ShowError('Пропущена точка с запятой', I + 1);
+      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
+         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
+         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}')) then // Комментарии {}
+      begin
+        SkipLine := True;
+      end;
     end;
 
-    // Добавляем проверку на наличие ';' перед 'else' на следующей строке
-    // Эта проверка также должна учитывать часть оператора до комментария
-    if (Line <> '') and (Line[Length(Line)] = ';') and NextLine.StartsWith('else') then
+    if not SkipLine then
     begin
-      ShowError('; не разрешена перед else', I + 1); // Указываем строку, где найдена ';'
+      // Проверяем наличие точки с запятой, если строка не пустая и не заканчивается на исключающие ключевые слова или перед else
+      if (Line <> '') and (Line[Length(Line)] <> ';') and
+         (not lowercase(Line).EndsWith('begin')) and
+         (not lowercase(Line).EndsWith('end.')) and
+         (not lowercase(Line).EndsWith('repeat')) and
+         (not lowercase(Line).EndsWith('then')) and
+         (not lowercase(Line).EndsWith('else')) and
+         (not lowercase(Line).EndsWith('do')) and
+         (not lowercase(Line).EndsWith('of')) and
+         (not lowercase(Line).EndsWith(':')) and
+         (not lowercase(Line).EndsWith(',')) and
+         (not lowercase(Line).EndsWith('try')) and
+         (not lowercase(Line).EndsWith('except')) and
+         (not lowercase(Line).EndsWith('finally')) and
+         (not lowercase(Line).EndsWith('until')) and
+         (not lowercase(Line).EndsWith('interface')) and
+         (not lowercase(Line).EndsWith('implementation')) and
+         (not lowercase(Line).EndsWith('initialization')) and
+         (not lowercase(Line).EndsWith('finalization')) and
+         (not lowercase(Line).EndsWith('const')) and
+         (not lowercase(Line).EndsWith('type')) and
+         (not lowercase(Line).EndsWith('var')) and
+         (not lowercase(Line).EndsWith('class')) and
+         (not lowercase(Line).EndsWith('public')) and
+         (not lowercase(Line).EndsWith('private')) and
+         (not lowercase(Line).EndsWith('protected')) and
+         (not lowercase(Line).EndsWith('published')) and
+         (not lowercase(Line).EndsWith('record')) and
+         (not lowercase(Line).EndsWith('array')) and
+         (not lowercase(Line).EndsWith('set')) and
+         (not lowercase(Line).EndsWith('file')) and
+         (not lowercase(Line).EndsWith('threadvar')) and
+         (not lowercase(Line).EndsWith('exports')) and
+         (not lowercase(Line).EndsWith('constructor')) and
+         (not lowercase(Line).EndsWith('destructor')) and
+         (not lowercase(Line).EndsWith('property')) and
+         (not lowercase(Line).EndsWith('procedure')) and
+         (not lowercase(Line).EndsWith('function')) and
+         (not lowercase(Line).EndsWith('try')) and
+         (not lowercase(Line).EndsWith('except')) and
+         (not lowercase(Line).EndsWith('finally')) and
+         (not lowercase(Line).EndsWith('repeat')) and
+         (not lowercase(Line).EndsWith('until')) and
+         (not lowercase(Line).EndsWith('uses')) and
+         (not lowercase(Line).EndsWith('and')) and
+         (not lowercase(Line).EndsWith('or')) and
+         (not lowercase(Line).EndsWith('div')) and
+         (not lowercase(Line).EndsWith('mod')) and
+         (not lowercase(Line).EndsWith('in')) and
+         (not lowercase(Line).EndsWith('is')) and
+         (not lowercase(Line).EndsWith('as')) and
+         (not lowercase(Line).EndsWith('shl')) and
+         (not lowercase(Line).EndsWith('shr')) and
+         (not lowercase(Line).EndsWith('+')) and
+         (not lowercase(Line).EndsWith('-')) and
+         (not lowercase(Line).EndsWith('*')) and
+         (not lowercase(Line).EndsWith('/')) and
+         (not lowercase(Line).EndsWith('=')) and
+         (not lowercase(Line).EndsWith('<>')) and
+         (not lowercase(Line).EndsWith('<')) and
+         (not lowercase(Line).EndsWith('>')) and
+         (not lowercase(Line).EndsWith('<=')) and
+         (not lowercase(Line).EndsWith('>=')) and
+         (not lowercase(Line).EndsWith('^')) and
+         (not lowercase(Line).EndsWith('.')) and
+         (not lowercase(NextLine).StartsWith('else')) and
+         (not ((Pos(' class', LowerCase(Line)) > 0) and (Pos('=', NextLine) = 0)))
+      then
+      begin
+        ShowError('Пропущена точка с запятой', I + 1);
+      end;
+
+      // Добавляем проверку на наличие ';' перед 'else' на следующей строке
+      if (Line <> '') and (Line[Length(Line)] = ';') and NextLine.StartsWith('else') then
+      begin
+        ShowError('; не разрешена перед else', I + 1);
+      end;
     end;
   end;
 
@@ -635,20 +643,28 @@ begin
   if SynEdit1.Lines.Count > 0 then
   begin
     Line := Trim(SynEdit1.Lines[SynEdit1.Lines.Count - 1]);
+    SkipLine := False;
 
     // Пропускаем комментарии и директивы компилятора
-    if (Line <> '') and
-       (((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
-        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
-        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}'))) then // Комментарии {}
-      Exit;
-
-    // Проверяем, если последняя строка оператора не пустая и не заканчивается '.' или ';', и не является концом блока (end., end;)
-    if (Line <> '') and (Line[Length(Line)] <> '.') and (Line[Length(Line)] <> ';') and
-       (not LowerCase(Line).EndsWith('end.')) and (not LowerCase(Line).EndsWith('end;')) then
+    if (Line <> '') then
     begin
-       // В простом анализаторе сложно точно определить, нужна ли ';' на последней строке. Оставим пока без ошибки.
-       // ShowError('Potential missing semicolon at end of file', SynEdit1.Lines.Count);
+      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
+         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
+         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}')) then // Комментарии {}
+      begin
+        SkipLine := True;
+      end;
+    end;
+
+    if not SkipLine then
+    begin
+      // Проверяем, если последняя строка оператора не пустая и не заканчивается '.' или ';', и не является концом блока (end., end;)
+      if (Line <> '') and (Line[Length(Line)] <> '.') and (Line[Length(Line)] <> ';') and
+         (not LowerCase(Line).EndsWith('end.')) and (not LowerCase(Line).EndsWith('end;')) then
+      begin
+         // В простом анализаторе сложно точно определить, нужна ли ';' на последней строке. Оставим пока без ошибки.
+         // ShowError('Potential missing semicolon at end of file', SynEdit1.Lines.Count);
+      end;
     end;
   end;
 end;
@@ -728,12 +744,15 @@ var
   Line, PrevLine: string;
   InTypeBlock: Boolean;
   HasTypeDefinition: Boolean;
+  SkipLine: Boolean;
 begin
   InTypeBlock := False;
   HasTypeDefinition := False;
   for I := 0 to SynEdit1.Lines.Count - 1 do
   begin
     Line := LowerCase(Trim(SynEdit1.Lines[I]));
+    SkipLine := False;
+    
     if I > 0 then
       PrevLine := LowerCase(Trim(SynEdit1.Lines[I - 1]))
     else
@@ -743,7 +762,7 @@ begin
     if StartsText('type', Line) then
     begin
       InTypeBlock := True;
-      Continue;
+      SkipLine := True;
     end;
     
     // Проверяем конец блока type
@@ -754,10 +773,10 @@ begin
     begin
       InTypeBlock := False;
       HasTypeDefinition := False;
+      SkipLine := True;
     end;
     
-    // Проверяем объявление типа только внутри блока type
-    if InTypeBlock then
+    if not SkipLine and InTypeBlock then
     begin
       // Если в текущей или предыдущей строке есть знак =, значит это объявление типа
       if (Pos('=', Line) > 0) or (Pos('=', PrevLine) > 0) then
@@ -780,34 +799,39 @@ var
   I: Integer;
   Line: string;
   InConstBlock: Boolean; // Flag to track if we are inside a const block
+  SkipLine: Boolean;
 begin
   InConstBlock := False;
   for I := 0 to SynEdit1.Lines.Count - 1 do
   begin
     Line := LowerCase(Trim(SynEdit1.Lines[I]));
+    SkipLine := False;
 
     // Check for the start of a const block
     if StartsText('const', Line) then
     begin
       InConstBlock := True;
-      Continue; // Move to the next line
+      SkipLine := True;
     end;
 
-    // Check for the end of a const block (could be var, type, procedure, function, implementation, initialization, finalization, or begin)
+    // Check for the end of a const block
     if InConstBlock and (StartsText('var', Line) or StartsText('type', Line) or
                         StartsText('procedure', Line) or StartsText('function', Line) or
                         StartsText('implementation', Line) or StartsText('initialization', Line) or
                         StartsText('finalization', Line) or StartsText('begin', Line)) then
     begin
       InConstBlock := False;
+      SkipLine := True;
     end;
 
-    // If inside a const block and line is not empty and does not contain '=', it's likely a missing value
-    if InConstBlock and (Line <> '') and (Pos('=', Line) = 0) and (not StartsText('(', Line)) then // Exclude attribute lists like [deprecated]
+    if not SkipLine then
     begin
-      ShowError('В объявлении константы пропущено значение', I + 1);
+      // If inside a const block and line is not empty and does not contain '=', it's likely a missing value
+      if InConstBlock and (Line <> '') and (Pos('=', Line) = 0) and (not StartsText('(', Line)) then // Exclude attribute lists like [deprecated]
+      begin
+        ShowError('В объявлении константы пропущено значение', I + 1);
+      end;
     end;
-
   end;
 end;
 

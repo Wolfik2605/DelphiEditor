@@ -21,6 +21,8 @@ object Form1: TForm1
     Width = 999
     Height = 19
     Panels = <>
+    ExplicitTop = 551
+    ExplicitWidth = 997
   end
   object SynEdit1: TSynEdit
     Left = 0
@@ -64,6 +66,8 @@ object Form1: TForm1
       '')
     SelectedColor.Alpha = 1.000000000000000000
     OnSpecialLineColors = SynEdit1SpecialLineColors
+    ExplicitWidth = 997
+    ExplicitHeight = 551
   end
   object CheckSyntaxBtn: TButton
     Left = 840
