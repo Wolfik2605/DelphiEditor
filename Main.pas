@@ -93,15 +93,12 @@ var
   Reg: TRegistry;
   LastDir: string;
 begin
-  OpenDialog1.Filter :=
-    'Delphi files (*.dpr;*.dpk)|*.dpr;*.dpk|' +
-    'Pascal files (*.pas)|*.pas|' +
-    'Form files (*.dfm)|*.dfm|' +
-    'Resource files (*.res)|*.res|' +
-    'Text files (*.txt)|*.txt|' +
+  OpenDialog1.Filter := 'Delphi files (*.dpr;*.dpk)|*.dpr;*.dpk|' +
+    'Pascal files (*.pas)|*.pas|' + 'Form files (*.dfm)|*.dfm|' +
+    'Resource files (*.res)|*.res|' + 'Text files (*.txt)|*.txt|' +
     'All files (*.*)|*.*';
   SaveDialog1.Filter := OpenDialog1.Filter;
-  
+
   // Загружаем последнюю папку из реестра
   Reg := TRegistry.Create;
   try
@@ -119,7 +116,7 @@ begin
   finally
     Reg.Free;
   end;
-  
+
   OpenDialog1.InitialDir := LastDir;
   SaveDialog1.InitialDir := LastDir;
 
@@ -130,27 +127,28 @@ begin
     Add;
     Add;
     Add;
-    
+
     // Настраиваем панели
     StatusBar1.SimplePanel := False;
-    
+
     // Первая панель - количество символов
     Items[0].Style := psText;
     Items[0].Bevel := pbLowered;
     Items[0].Alignment := taLeftJustify;
     Items[0].Width := 150; // Увеличиваем ширину
-    
+
     // Вторая панель - количество строк
     Items[1].Style := psText;
     Items[1].Bevel := pbLowered;
     Items[1].Alignment := taLeftJustify;
     Items[1].Width := 150; // Увеличиваем ширину
-    
+
     // Третья панель - сообщения об ошибках
     Items[2].Style := psText;
     Items[2].Bevel := pbLowered;
     Items[2].Alignment := taLeftJustify;
-    Items[2].Width := StatusBar1.Width - 300; // Учитываем увеличенную ширину первых двух панелей
+    Items[2].Width := StatusBar1.Width - 300;
+    // Учитываем увеличенную ширину первых двух панелей
   end;
 
   // Привязываем контекстное меню к статусбару
@@ -161,24 +159,25 @@ begin
   SynEdit1.Highlighter := SynPasSyn1;
   SynEdit1.Gutter.ShowLineNumbers := True;
   SynEdit1.Gutter.Font := SynEdit1.Font;
-  
+
   // Настраиваем начальные цвета подсветки
   ConfigureSyntaxColors;
 
   FileName := '';
   FErrorLine := -1;
-  
+
   // Инициализируем информацию о количестве строк и символов
   StatusBar1.Panels[0].Text := 'Символов: 0';
   StatusBar1.Panels[1].Text := 'Строк: 0';
-  
+
   // Загружаем последний открытый файл из реестра, если нет параметров командной строки
   if ParamCount = 0 then // Проверяем наличие параметров командной строки
   begin
     Reg := TRegistry.Create;
     try
       Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\DelphiEditor', False) then // Открываем ключ только для чтения
+      if Reg.OpenKey('\Software\DelphiEditor', False) then
+      // Открываем ключ только для чтения
       begin
         // Сначала проверяем, был ли пустой файл
         if Reg.ValueExists('WasEmpty') and Reg.ReadBool('WasEmpty') then
@@ -188,7 +187,7 @@ begin
           SynEdit1.Clear;
           Caption := 'Delphi Editor';
           StatusBar1.Panels[2].Text := '';
-          
+
           // Обновляем информацию о количестве строк и символов
           StatusBar1.Panels[0].Text := 'Символов: 0';
           StatusBar1.Panels[1].Text := 'Строк: 0';
@@ -203,10 +202,12 @@ begin
             Caption := 'Delphi Editor - ' + ExtractFileName(FFileName);
             SynEdit1.Modified := False;
             StatusBar1.Panels[2].Text := '';
-            
+
             // Обновляем информацию о количестве строк и символов
-            StatusBar1.Panels[0].Text := 'Символов: ' + IntToStr(Length(SynEdit1.Text));
-            StatusBar1.Panels[1].Text := 'Строк: ' + IntToStr(SynEdit1.Lines.Count);
+            StatusBar1.Panels[0].Text := 'Символов: ' +
+              IntToStr(Length(SynEdit1.Text));
+            StatusBar1.Panels[1].Text := 'Строк: ' +
+              IntToStr(SynEdit1.Lines.Count);
           end
           else
           begin
@@ -247,11 +248,12 @@ begin
       Caption := 'Delphi Editor - ' + ExtractFileName(FFileName);
       SynEdit1.Modified := False;
       StatusBar1.Panels[2].Text := '';
-      
+
       // Обновляем информацию о количестве строк и символов
-      StatusBar1.Panels[0].Text := 'Символов: ' + IntToStr(Length(SynEdit1.Text));
+      StatusBar1.Panels[0].Text := 'Символов: ' +
+        IntToStr(Length(SynEdit1.Text));
       StatusBar1.Panels[1].Text := 'Строк: ' + IntToStr(SynEdit1.Lines.Count);
-      
+
       // Сохраняем путь к открытому через "Открыть с помощью" файлу в реестр
       Reg := TRegistry.Create;
       try
@@ -316,10 +318,11 @@ procedure TForm1.OpenClick(Sender: TObject);
 var
   Reg: TRegistry;
   LastDir: string;
-  CanContinue: Boolean; // Переменная для отслеживания, можно ли продолжить открытие файла
+  CanContinue: Boolean;
+  // Переменная для отслеживания, можно ли продолжить открытие файла
 begin
   CanContinue := True; // По умолчанию разрешаем продолжить
-  
+
   if SynEdit1.Modified then // Проверяем, были ли изменения в текущем файле
   begin
     case MessageDlg('Документ изменен. Сохранить изменения?', mtConfirmation,
@@ -330,7 +333,7 @@ begin
         CanContinue := False; // Отменяем открытие нового файла
     end;
   end;
-  
+
   if CanContinue then // Если разрешено продолжить
   begin
     if OpenDialog1.Execute then
@@ -339,18 +342,20 @@ begin
       FileName := OpenDialog1.FileName;
       SynEdit1.Modified := False;
       StatusBar1.Panels[2].Text := '';
-      
+
       // Обновляем информацию о количестве строк и символов
-      StatusBar1.Panels[0].Text := 'Символов: ' + IntToStr(Length(SynEdit1.Text));
+      StatusBar1.Panels[0].Text := 'Символов: ' +
+        IntToStr(Length(SynEdit1.Text));
       StatusBar1.Panels[1].Text := 'Строк: ' + IntToStr(SynEdit1.Lines.Count);
-      
+
       // Сбрасываем ошибку и подсветку при открытии нового файла
       if FErrorLine >= 0 then
       begin
-        SynEdit1.InvalidateLine(FErrorLine + 1); // Перерисовываем предыдущую строку с ошибкой
+        SynEdit1.InvalidateLine(FErrorLine + 1);
+        // Перерисовываем предыдущую строку с ошибкой
         FErrorLine := -1;
       end;
-      
+
       // Сохраняем папку в реестр
       LastDir := ExtractFilePath(OpenDialog1.FileName);
       Reg := TRegistry.Create;
@@ -364,7 +369,7 @@ begin
       finally
         Reg.Free;
       end;
-      
+
       // Сохраняем путь к открытому файлу в реестр
       Reg := TRegistry.Create;
       try
@@ -402,7 +407,7 @@ begin
     SynEdit1.Lines.SaveToFile(SaveDialog1.FileName);
     FileName := SaveDialog1.FileName;
     SynEdit1.Modified := False;
-    
+
     // Сохраняем папку в реестр
     LastDir := ExtractFilePath(SaveDialog1.FileName);
     Reg := TRegistry.Create;
@@ -479,58 +484,65 @@ begin
   // Сбрасываем предыдущую ошибку, если была
   if FErrorLine >= 0 then
   begin
-    SynEdit1.InvalidateLine(FErrorLine + 1); // Перерисовываем предыдущую строку с ошибкой
+    SynEdit1.InvalidateLine(FErrorLine + 1);
+    // Перерисовываем предыдущую строку с ошибкой
     FErrorLine := -1;
   end;
-  
+
   StatusBar1.Panels[2].Text := '';
-  
+
   // Проверяем баланс скобок
   CheckParenthesesBalance;
-  
+
   // Проверяем использование точек с запятой
   CheckSemicolonUsage;
-  
+
   // Проверяем баланс if/then
   CheckIfThenBalance;
-  
+
   // Проверяем объявления процедур и функций
   CheckProcedureFunctionDeclarations;
-  
+
   // Проверяем объявления переменных
   CheckVariableDeclarations;
-  
+
   // Проверяем объявления типов
   CheckTypeDeclarations;
-  
+
   // Проверяем объявления констант
   CheckConstantDeclarations;
-  
+
   if StatusBar1.Panels[2].Text = '' then
-    StatusBar1.Panels[2].Text := 'Проверка синтаксиса завершена - ошибок не найдено';
+    StatusBar1.Panels[2].Text :=
+      'Проверка синтаксиса завершена - ошибок не найдено';
 end;
 
 procedure TForm1.CheckParenthesesBalance;
 var
   I, ParenCount: Integer;
+  FoundError: Boolean;
 begin
   ParenCount := 0;
-  
+  FoundError := False;
+
   for I := 1 to Length(SynEdit1.Text) do
   begin
-    if SynEdit1.Text[I] = '(' then
-      Inc(ParenCount)
-    else if SynEdit1.Text[I] = ')' then
-      Dec(ParenCount);
-      
-    if ParenCount < 0 then
+    if not FoundError then
     begin
-      ShowError('Незакрытые скобки', -1);
-      Break;
+      if SynEdit1.Text[I] = '(' then
+        Inc(ParenCount)
+      else if SynEdit1.Text[I] = ')' then
+        Dec(ParenCount);
+
+      if (ParenCount < 0) then
+      begin
+        ShowError('Незакрытые скобки', -1);
+        FoundError := True;
+      end;
     end;
   end;
-  
-  if ParenCount > 0 then
+
+  if (not FoundError) and (ParenCount > 0) then
     ShowError('Незакрытые скобки', -1);
 end;
 
@@ -540,7 +552,8 @@ var
   Line, NextLine: string;
   SkipLine: Boolean;
 begin
-  for I := 0 to SynEdit1.Lines.Count - 2 do // Проверяем до предпоследней строки, чтобы иметь доступ к NextLine
+  for I := 0 to SynEdit1.Lines.Count - 2 do
+  // Проверяем до предпоследней строки, чтобы иметь доступ к NextLine
   begin
     Line := Trim(SynEdit1.Lines[I]);
     NextLine := LowerCase(Trim(SynEdit1.Lines[I + 1]));
@@ -549,9 +562,12 @@ begin
     // Пропускаем комментарии и директивы компилятора
     if (Line <> '') then
     begin
-      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
-         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
-         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}')) then // Комментарии {}
+      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or
+      // Комментарии //
+        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or
+      // Директивы компилятора {$
+        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}'))
+      then // Комментарии {}
       begin
         SkipLine := True;
       end;
@@ -561,78 +577,79 @@ begin
     begin
       // Проверяем наличие точки с запятой, если строка не пустая и не заканчивается на исключающие ключевые слова или перед else
       if (Line <> '') and (Line[Length(Line)] <> ';') and
-         (not lowercase(Line).EndsWith('begin')) and
-         (not lowercase(Line).EndsWith('end.')) and
-         (not lowercase(Line).EndsWith('repeat')) and
-         (not lowercase(Line).EndsWith('then')) and
-         (not lowercase(Line).EndsWith('else')) and
-         (not lowercase(Line).EndsWith('do')) and
-         (not lowercase(Line).EndsWith('of')) and
-         (not lowercase(Line).EndsWith(':')) and
-         (not lowercase(Line).EndsWith(',')) and
-         (not lowercase(Line).EndsWith('try')) and
-         (not lowercase(Line).EndsWith('except')) and
-         (not lowercase(Line).EndsWith('finally')) and
-         (not lowercase(Line).EndsWith('until')) and
-         (not lowercase(Line).EndsWith('interface')) and
-         (not lowercase(Line).EndsWith('implementation')) and
-         (not lowercase(Line).EndsWith('initialization')) and
-         (not lowercase(Line).EndsWith('finalization')) and
-         (not lowercase(Line).EndsWith('const')) and
-         (not lowercase(Line).EndsWith('type')) and
-         (not lowercase(Line).EndsWith('var')) and
-         (not lowercase(Line).EndsWith('class')) and
-         (not lowercase(Line).EndsWith('public')) and
-         (not lowercase(Line).EndsWith('private')) and
-         (not lowercase(Line).EndsWith('protected')) and
-         (not lowercase(Line).EndsWith('published')) and
-         (not lowercase(Line).EndsWith('record')) and
-         (not lowercase(Line).EndsWith('array')) and
-         (not lowercase(Line).EndsWith('set')) and
-         (not lowercase(Line).EndsWith('file')) and
-         (not lowercase(Line).EndsWith('threadvar')) and
-         (not lowercase(Line).EndsWith('exports')) and
-         (not lowercase(Line).EndsWith('constructor')) and
-         (not lowercase(Line).EndsWith('destructor')) and
-         (not lowercase(Line).EndsWith('property')) and
-         (not lowercase(Line).EndsWith('procedure')) and
-         (not lowercase(Line).EndsWith('function')) and
-         (not lowercase(Line).EndsWith('try')) and
-         (not lowercase(Line).EndsWith('except')) and
-         (not lowercase(Line).EndsWith('finally')) and
-         (not lowercase(Line).EndsWith('repeat')) and
-         (not lowercase(Line).EndsWith('until')) and
-         (not lowercase(Line).EndsWith('uses')) and
-         (not lowercase(Line).EndsWith('and')) and
-         (not lowercase(Line).EndsWith('or')) and
-         (not lowercase(Line).EndsWith('div')) and
-         (not lowercase(Line).EndsWith('mod')) and
-         (not lowercase(Line).EndsWith('in')) and
-         (not lowercase(Line).EndsWith('is')) and
-         (not lowercase(Line).EndsWith('as')) and
-         (not lowercase(Line).EndsWith('shl')) and
-         (not lowercase(Line).EndsWith('shr')) and
-         (not lowercase(Line).EndsWith('+')) and
-         (not lowercase(Line).EndsWith('-')) and
-         (not lowercase(Line).EndsWith('*')) and
-         (not lowercase(Line).EndsWith('/')) and
-         (not lowercase(Line).EndsWith('=')) and
-         (not lowercase(Line).EndsWith('<>')) and
-         (not lowercase(Line).EndsWith('<')) and
-         (not lowercase(Line).EndsWith('>')) and
-         (not lowercase(Line).EndsWith('<=')) and
-         (not lowercase(Line).EndsWith('>=')) and
-         (not lowercase(Line).EndsWith('^')) and
-         (not lowercase(Line).EndsWith('.')) and
-         (not lowercase(NextLine).StartsWith('else')) and
-         (not ((Pos(' class', LowerCase(Line)) > 0) and (Pos('=', NextLine) = 0)))
+        (not LowerCase(Line).EndsWith('begin')) and
+        (not LowerCase(Line).EndsWith('end.')) and
+        (not LowerCase(Line).EndsWith('repeat')) and
+        (not LowerCase(Line).EndsWith('then')) and
+        (not LowerCase(Line).EndsWith('else')) and
+        (not LowerCase(Line).EndsWith('do')) and
+        (not LowerCase(Line).EndsWith('of')) and
+        (not LowerCase(Line).EndsWith(':')) and
+        (not LowerCase(Line).EndsWith(',')) and
+        (not LowerCase(Line).EndsWith('try')) and
+        (not LowerCase(Line).EndsWith('except')) and
+        (not LowerCase(Line).EndsWith('finally')) and
+        (not LowerCase(Line).EndsWith('until')) and
+        (not LowerCase(Line).EndsWith('interface')) and
+        (not LowerCase(Line).EndsWith('implementation')) and
+        (not LowerCase(Line).EndsWith('initialization')) and
+        (not LowerCase(Line).EndsWith('finalization')) and
+        (not LowerCase(Line).EndsWith('const')) and
+        (not LowerCase(Line).EndsWith('type')) and
+        (not LowerCase(Line).EndsWith('var')) and
+        (not LowerCase(Line).EndsWith('class')) and
+        (not LowerCase(Line).EndsWith('public')) and
+        (not LowerCase(Line).EndsWith('private')) and
+        (not LowerCase(Line).EndsWith('protected')) and
+        (not LowerCase(Line).EndsWith('published')) and
+        (not LowerCase(Line).EndsWith('record')) and
+        (not LowerCase(Line).EndsWith('array')) and
+        (not LowerCase(Line).EndsWith('set')) and
+        (not LowerCase(Line).EndsWith('file')) and
+        (not LowerCase(Line).EndsWith('threadvar')) and
+        (not LowerCase(Line).EndsWith('exports')) and
+        (not LowerCase(Line).EndsWith('constructor')) and
+        (not LowerCase(Line).EndsWith('destructor')) and
+        (not LowerCase(Line).EndsWith('property')) and
+        (not LowerCase(Line).EndsWith('procedure')) and
+        (not LowerCase(Line).EndsWith('function')) and
+        (not LowerCase(Line).EndsWith('try')) and
+        (not LowerCase(Line).EndsWith('except')) and
+        (not LowerCase(Line).EndsWith('finally')) and
+        (not LowerCase(Line).EndsWith('repeat')) and
+        (not LowerCase(Line).EndsWith('until')) and
+        (not LowerCase(Line).EndsWith('uses')) and
+        (not LowerCase(Line).EndsWith('and')) and
+        (not LowerCase(Line).EndsWith('or')) and
+        (not LowerCase(Line).EndsWith('div')) and
+        (not LowerCase(Line).EndsWith('mod')) and
+        (not LowerCase(Line).EndsWith('in')) and
+        (not LowerCase(Line).EndsWith('is')) and
+        (not LowerCase(Line).EndsWith('as')) and
+        (not LowerCase(Line).EndsWith('shl')) and
+        (not LowerCase(Line).EndsWith('shr')) and
+        (not LowerCase(Line).EndsWith('+')) and
+        (not LowerCase(Line).EndsWith('-')) and
+        (not LowerCase(Line).EndsWith('*')) and
+        (not LowerCase(Line).EndsWith('/')) and
+        (not LowerCase(Line).EndsWith('=')) and
+        (not LowerCase(Line).EndsWith('<>')) and
+        (not LowerCase(Line).EndsWith('<')) and
+        (not LowerCase(Line).EndsWith('>')) and
+        (not LowerCase(Line).EndsWith('<=')) and
+        (not LowerCase(Line).EndsWith('>=')) and
+        (not LowerCase(Line).EndsWith('^')) and
+        (not LowerCase(Line).EndsWith('.')) and
+        (not LowerCase(NextLine).StartsWith('else')) and
+        (not((Pos(' class', LowerCase(Line)) > 0) and (Pos('=', NextLine) = 0)))
       then
       begin
         ShowError('Пропущена точка с запятой', I + 1);
       end;
 
       // Добавляем проверку на наличие ';' перед 'else' на следующей строке
-      if (Line <> '') and (Line[Length(Line)] = ';') and NextLine.StartsWith('else') then
+      if (Line <> '') and (Line[Length(Line)] = ';') and
+        NextLine.StartsWith('else') then
       begin
         ShowError('; не разрешена перед else', I + 1);
       end;
@@ -648,9 +665,12 @@ begin
     // Пропускаем комментарии и директивы компилятора
     if (Line <> '') then
     begin
-      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or // Комментарии //
-         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or // Директивы компилятора {$
-         ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}')) then // Комментарии {}
+      if ((Length(Line) >= 2) and (Line[1] = '/') and (Line[2] = '/')) or
+      // Комментарии //
+        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[2] = '$')) or
+      // Директивы компилятора {$
+        ((Length(Line) >= 2) and (Line[1] = '{') and (Line[Length(Line)] = '}'))
+      then // Комментарии {}
       begin
         SkipLine := True;
       end;
@@ -659,11 +679,12 @@ begin
     if not SkipLine then
     begin
       // Проверяем, если последняя строка оператора не пустая и не заканчивается '.' или ';', и не является концом блока (end., end;)
-      if (Line <> '') and (Line[Length(Line)] <> '.') and (Line[Length(Line)] <> ';') and
-         (not LowerCase(Line).EndsWith('end.')) and (not LowerCase(Line).EndsWith('end;')) then
+      if (Line <> '') and (Line[Length(Line)] <> '.') and
+        (Line[Length(Line)] <> ';') and (not LowerCase(Line).EndsWith('end.'))
+        and (not LowerCase(Line).EndsWith('end;')) then
       begin
-         // В простом анализаторе сложно точно определить, нужна ли ';' на последней строке. Оставим пока без ошибки.
-         // ShowError('Potential missing semicolon at end of file', SynEdit1.Lines.Count);
+        // В простом анализаторе сложно точно определить, нужна ли ';' на последней строке. Оставим пока без ошибки.
+        // ShowError('Potential missing semicolon at end of file', SynEdit1.Lines.Count);
       end;
     end;
   end;
@@ -680,7 +701,7 @@ begin
   ThenCount := 0;
   LastIfLine := -1;
   FirstThenLine := -1;
-  
+
   for I := 0 to SynEdit1.Lines.Count - 1 do
   begin
     Line := LowerCase(Trim(SynEdit1.Lines[I]));
@@ -696,7 +717,7 @@ begin
         FirstThenLine := I + 1; // Запоминаем номер первой строки с then
     end;
   end;
-  
+
   if IfCount > ThenCount then
     ShowError('Пропущен "then" для "if"', LastIfLine)
   else if ThenCount > IfCount then
@@ -727,13 +748,14 @@ begin
   for I := 0 to SynEdit1.Lines.Count - 1 do
   begin
     Line := LowerCase(Trim(SynEdit1.Lines[I]));
-    
+
     // Проверка объявления переменной
     if (Pos('var ', Line) > 0) and (Pos(':', Line) = 0) then
       ShowError('В объявлении переменной пропущен тип', I + 1);
-      
+
     // Проверка множественного объявления
-    if (Pos('var ', Line) > 0) and (Pos(',', Line) > 0) and (Pos(':', Line) = 0) then
+    if (Pos('var ', Line) > 0) and (Pos(',', Line) > 0) and (Pos(':', Line) = 0)
+    then
       ShowError('В множественном объявлении переменной пропущен тип', I + 1);
   end;
 end;
@@ -752,43 +774,45 @@ begin
   begin
     Line := LowerCase(Trim(SynEdit1.Lines[I]));
     SkipLine := False;
-    
+
     if I > 0 then
       PrevLine := LowerCase(Trim(SynEdit1.Lines[I - 1]))
     else
       PrevLine := '';
-    
+
     // Проверяем начало блока type
     if StartsText('type', Line) then
     begin
       InTypeBlock := True;
       SkipLine := True;
     end;
-    
+
     // Проверяем конец блока type
     if InTypeBlock and (StartsText('var', Line) or StartsText('const', Line) or
-                       StartsText('procedure', Line) or StartsText('function', Line) or
-                       StartsText('implementation', Line) or StartsText('initialization', Line) or
-                       StartsText('finalization', Line) or StartsText('begin', Line)) then
+      StartsText('procedure', Line) or StartsText('function', Line) or
+      StartsText('implementation', Line) or StartsText('initialization', Line)
+      or StartsText('finalization', Line) or StartsText('begin', Line)) then
     begin
       InTypeBlock := False;
       HasTypeDefinition := False;
       SkipLine := True;
     end;
-    
+
     if not SkipLine and InTypeBlock then
     begin
       // Если в текущей или предыдущей строке есть знак =, значит это объявление типа
       if (Pos('=', Line) > 0) or (Pos('=', PrevLine) > 0) then
         HasTypeDefinition := True;
-        
+
       // Проверка объявления типа
-      if (Line <> '') and (not StartsText('(', Line)) and (not HasTypeDefinition) and
-         (not StartsText('end', Line)) and (not StartsText('record', Line)) then
+      if (Line <> '') and (not StartsText('(', Line)) and
+        (not HasTypeDefinition) and (not StartsText('end', Line)) and
+        (not StartsText('record', Line)) then
         ShowError('В объявлении типа пропущено определение', I + 1);
-        
+
       // Проверка объявления record только если это действительно объявление типа
-      if (Pos('record', Line) > 0) and (Pos('=', Line) = 0) and (Pos('=', PrevLine) = 0) then
+      if (Pos('record', Line) > 0) and (Pos('=', Line) = 0) and
+        (Pos('=', PrevLine) = 0) then
         ShowError('В объявлении record пропущено определение типа', I + 1);
     end;
   end;
@@ -816,9 +840,9 @@ begin
 
     // Check for the end of a const block
     if InConstBlock and (StartsText('var', Line) or StartsText('type', Line) or
-                        StartsText('procedure', Line) or StartsText('function', Line) or
-                        StartsText('implementation', Line) or StartsText('initialization', Line) or
-                        StartsText('finalization', Line) or StartsText('begin', Line)) then
+      StartsText('procedure', Line) or StartsText('function', Line) or
+      StartsText('implementation', Line) or StartsText('initialization', Line)
+      or StartsText('finalization', Line) or StartsText('begin', Line)) then
     begin
       InConstBlock := False;
       SkipLine := True;
@@ -827,7 +851,9 @@ begin
     if not SkipLine then
     begin
       // If inside a const block and line is not empty and does not contain '=', it's likely a missing value
-      if InConstBlock and (Line <> '') and (Pos('=', Line) = 0) and (not StartsText('(', Line)) then // Exclude attribute lists like [deprecated]
+      if InConstBlock and (Line <> '') and (Pos('=', Line) = 0) and
+        (not StartsText('(', Line)) then
+      // Exclude attribute lists like [deprecated]
       begin
         ShowError('В объявлении константы пропущено значение', I + 1);
       end;
@@ -853,17 +879,19 @@ begin
   if StatusBar1.Panels.Count > 2 then
   begin
     StatusBar1.Panels[2].Text := 'Error: ' + ErrorMsg;
-    
+
     // Сбрасываем предыдущую ошибку, если была
     if FErrorLine >= 0 then
     begin
-      SynEdit1.InvalidateLine(FErrorLine + 1); // Перерисовываем предыдущую строку с ошибкой
+      SynEdit1.InvalidateLine(FErrorLine + 1);
+      // Перерисовываем предыдущую строку с ошибкой
       FErrorLine := -1;
     end;
-    
+
     if LineNumber > 0 then
     begin
-      StatusBar1.Panels[2].Text := StatusBar1.Panels[2].Text + ' в строке ' + IntToStr(LineNumber);
+      StatusBar1.Panels[2].Text := StatusBar1.Panels[2].Text + ' в строке ' +
+        IntToStr(LineNumber);
       FErrorLine := LineNumber - 1; // FErrorLine хранится с 0-индексом
       SynEdit1.InvalidateLine(LineNumber); // Перерисовываем строку с ошибкой
     end;
@@ -872,10 +900,11 @@ end;
 
 procedure TForm1.NewClick(Sender: TObject);
 var
-  CanContinue: Boolean; // Переменная для отслеживания, можно ли продолжить создание нового файла
+  CanContinue: Boolean;
+  // Переменная для отслеживания, можно ли продолжить создание нового файла
 begin
   CanContinue := True; // По умолчанию разрешаем продолжить
-  
+
   if SynEdit1.Modified then // Проверяем, были ли изменения
   begin
     case MessageDlg('Документ изменен. Сохранить изменения?', mtConfirmation,
@@ -886,21 +915,22 @@ begin
         CanContinue := False; // Отменяем создание нового файла
     end;
   end;
-  
+
   if CanContinue then // Если разрешено продолжить
   begin
     SynEdit1.Clear;
     FileName := '';
     StatusBar1.Panels[2].Text := '';
-    
+
     // Обновляем информацию о количестве строк и символов
     StatusBar1.Panels[0].Text := 'Символов: ' + IntToStr(Length(SynEdit1.Text));
     StatusBar1.Panels[1].Text := 'Строк: ' + IntToStr(SynEdit1.Lines.Count);
-    
+
     // Сбрасываем ошибку и подсветку
     if FErrorLine >= 0 then
     begin
-      SynEdit1.InvalidateLine(FErrorLine + 1); // Перерисовываем предыдущую строку с ошибкой
+      SynEdit1.InvalidateLine(FErrorLine + 1);
+      // Перерисовываем предыдущую строку с ошибкой
       FErrorLine := -1;
     end;
   end;
@@ -919,7 +949,8 @@ begin
   // Сбрасываем ошибку и подсветку при изменении текста
   if FErrorLine >= 0 then
   begin
-    SynEdit1.InvalidateLine(FErrorLine + 1); // Перерисовываем предыдущую строку с ошибкой
+    SynEdit1.InvalidateLine(FErrorLine + 1);
+    // Перерисовываем предыдущую строку с ошибкой
     FErrorLine := -1;
     StatusBar1.Panels[2].Text := '';
   end;
@@ -934,11 +965,12 @@ procedure TForm1.SynEdit1SpecialLineColors(Sender: TObject; Line: Integer;
   var Special: Boolean; var FG, BG: TColor);
 begin
   // Проверяем, является ли текущая строка строкой с ошибкой (учитываем 1-индексацию Line)
-  if (FErrorLine >= 0) and (Line = FErrorLine + 1) then // Сравниваем 1-индексированный Line с 0-индексированным FErrorLine + 1
+  if (FErrorLine >= 0) and (Line = FErrorLine + 1) then
+  // Сравниваем 1-индексированный Line с 0-индексированным FErrorLine + 1
   begin
     Special := True; // Указываем, что строка особая
-    BG := clRed; 
-    FG := clBlack; 
+    BG := clRed;
+    FG := clBlack;
   end
   else
   begin
@@ -953,32 +985,32 @@ begin
     // Основные цвета
     CommentAttri.Foreground := clGreen;
     CommentAttri.Style := [fsItalic];
-    
+
     // Ключевые слова
     KeyAttri.Foreground := clNavy;
     KeyAttri.Style := [fsBold];
-    
+
     // Строки
     StringAttri.Foreground := clMaroon;
-    
+
     // Числа
     NumberAttri.Foreground := clBlue;
-    
+
     // Идентификаторы
     IdentifierAttri.Foreground := clBlack;
-    
+
     // Директивы компилятора
     DirectiveAttri.Foreground := clPurple;
     DirectiveAttri.Style := [fsBold];
-    
+
     // Символы
     SymbolAttri.Foreground := clRed;
-    
+
     // Типы
     TypeAttri.Foreground := clOlive;
     TypeAttri.Style := [fsBold];
   end;
-  
+
   SynEdit1.Invalidate;
 end;
 
